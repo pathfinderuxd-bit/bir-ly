@@ -75,3 +75,19 @@ the app works both at the apex and under the `/bir-ly/` github.io subpath.
 - [ ] Create Apps Script web app (code in `README.md`), paste both URLs into `config.js`
 - [ ] Enter the write key in the dashboard under "Write key"
 - [ ] Add `site/CNAME` containing `bir.ly` once DNS resolves, then tick Enforce HTTPS
+
+---
+
+## After committing — always ask before pushing
+
+Never push straight after a commit. Commit the work, show what changed, then
+ask a single question offering both routes:
+
+1. **Here's the command** — give the exact `git push` line to run
+2. **I can push now** — push it on a yes
+
+Offer both, pick neither, and wait for the answer. This applies to every repo
+in this workspace, nested project repos included.
+
+The one exception is when the push was already asked for in the same message
+("commit and push", "push it up") — then just do it and say so.
