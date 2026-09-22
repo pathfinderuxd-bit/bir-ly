@@ -3,3 +3,6 @@ node_modules/
 *.log
 .env
 _site/
+
+# Local secrets — never committed (this repo is public)
+.secrets.local.md
