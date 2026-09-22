@@ -36,14 +36,33 @@ body{
 
 .wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px;position:relative}
 
+.controls{position:absolute;top:40px;right:20px;display:flex;gap:8px}
+.palette-wrap{position:relative}
 .theme-btn{
-  position:absolute;top:40px;right:20px;
   width:34px;height:34px;display:grid;place-items:center;
   background:var(--surface);border:1px solid var(--line);
   border-radius:var(--radius);color:var(--muted);padding:0;
 }
 .theme-btn:hover{color:var(--brand);border-color:var(--brand-line);background:var(--brand-tint)}
 .theme-btn svg{width:17px;height:17px}
+.theme-btn[aria-expanded="true"]{color:var(--brand);border-color:var(--brand);background:var(--brand-tint)}
+
+.popover{
+  position:absolute;top:calc(100% + 8px);right:0;z-index:50;
+  display:flex;gap:8px;padding:10px;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:calc(var(--radius) * 2);
+  box-shadow:0 10px 15px -3px rgba(0,0,0,.12),0 4px 6px -4px rgba(0,0,0,.1);
+}
+.popover[hidden]{display:none}
+.swatch{
+  width:26px;height:26px;border-radius:50%;padding:0;cursor:pointer;
+  border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
+}
+.swatch:hover{transform:scale(1.08)}
+/* The ring is the page's own line colour, so the chosen swatch reads as
+   selected in either theme without depending on the accent it is setting. */
+.swatch.on{border-color:var(--ink);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 
 header{display:flex;align-items:flex-end;gap:12px;margin-bottom:6px;flex-wrap:wrap}
 .logo{display:flex;flex-direction:column;align-items:flex-start;gap:2px;

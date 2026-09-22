@@ -31,7 +31,13 @@
 
 <div class="wrap">
 
-  <button class="theme-btn" type="button" id="theme-btn"></button>
+  <div class="controls">
+    <div class="palette-wrap">
+      <button class="theme-btn" type="button" id="palette-btn"></button>
+      <div class="popover" id="palette" hidden role="group" aria-label="Accent colour"></div>
+    </div>
+    <button class="theme-btn" type="button" id="theme-btn"></button>
+  </div>
 
   <header>
     <a class="logo" href="./"><img src="icon-512.png" alt=""><span>birly<b>.uk</b></span></a>
@@ -240,6 +246,26 @@ function parseCSV(text){
   return rows;
 }
 
+/* Sheets exports in the spreadsheet's locale, so the created column is now
+ * DD/MM/YYYY — which Date.parse reads as an impossible month and discards.
+ * Rows written before the timezone change are M/D/YYYY, so where a date is
+ * genuinely ambiguous prefer day-first: everything new is written that way. */
+function parseCreated(raw){
+  const s = String(raw || '').trim();
+  if (!s) return null;
+
+  const m = s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})(?:[ ,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if (m){
+    let [, a, b, y, hh, mm, ss] = m.map(v => v === undefined ? v : Number(v));
+    let day = a, month = b;
+    if (a > 12 && b <= 12){ day = a; month = b; }
+    else if (b > 12 && a <= 12){ day = b; month = a; }
+    return new Date(y, month - 1, day, hh || 0, mm || 0, ss || 0).getTime();
+  }
+
+  return Date.parse(s) || null;
+}
+
 async function loadLinks(){
   if (!CAN_READ){
     try { return JSON.parse(localStorage.getItem(LOCAL_KEY)) || []; } catch { return []; }
@@ -248,7 +274,7 @@ async function loadLinks(){
   if (!res.ok) throw new Error('sheet ' + res.status);
   return parseCSV(await res.text())
     .filter(r => r[0] && r[1] && r[0].trim().toLowerCase() !== 'slug')
-    .map(r => ({ slug: r[0].trim(), url: r[1].trim(), created: Date.parse(r[2]) || null }))
+    .map(r => ({ slug: r[0].trim(), url: r[1].trim(), created: parseCreated(r[2]) }))
     .reverse();
 }
 
@@ -291,7 +317,7 @@ async function deleteLink(slug){
   }
   const data = await callScript({ action: 'delete', slug });
   links = links.filter(l => l.slug !== slug);
-  return { slug, url: data.url, created: Date.parse(data.created) || Date.now() };
+  return { slug, url: data.url, created: parseCreated(data.created) || Date.now() };
 }
 
 form.addEventListener('submit', async e => {
@@ -432,7 +458,11 @@ function render(){
   }
   render();
 })();
-  Theme.mount(document.getElementById('theme-btn'));
+  Theme.mount(
+    document.getElementById('theme-btn'),
+    document.getElementById('palette-btn'),
+    document.getElementById('palette')
+  );
 </script>
 </body>
 </html>
