@@ -152,3 +152,69 @@ li{
   .li-main{flex:1 1 100%}
   .meta{margin-right:auto}
 }
+
+/* ---------------------------------------------------------- the splash --
+ * Covers the page while a write is in flight. Not quite opaque and blurred,
+ * so the page behind reads as present but not legible — the same treatment
+ * job-pipeline uses. The mark pulses; it never fades, because a logo that
+ * dims reads as a failure rather than as work in progress.
+ */
+.splash{
+  position:fixed; inset:0; z-index:2000;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter:blur(18px) saturate(115%);
+  backdrop-filter:blur(18px) saturate(115%);
+  transition:opacity .18s ease;
+}
+.splash[hidden]{display:none!important}
+.splash.out{opacity:0}
+@supports not (backdrop-filter:blur(1px)){ .splash{background:var(--bg)} }
+.splash img{
+  width:84px; height:84px; border-radius:50%;
+  animation:splash-breathe 1.6s ease-in-out infinite;
+}
+.splash-label{
+  font-size:14px; font-weight:600; color:var(--label);
+  letter-spacing:.02em;
+}
+@keyframes splash-breathe{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.08)}
+}
+@media (prefers-reduced-motion:reduce){
+  .splash img{animation-duration:3s}
+  .splash{transition:none}
+}
+
+/* ------------------------------------------------------------ banners --
+ * One at a time, bottom of the screen. The destructive one is red and
+ * carries the Undo; 10s, because an undo that vanishes while you are still
+ * reading it is worse than no undo at all.
+ */
+.banner-wrap{
+  position:fixed; left:0; right:0; bottom:0; z-index:2100;
+  display:flex; justify-content:center; padding:16px; pointer-events:none;
+}
+.banner{
+  pointer-events:auto; display:flex; align-items:center; gap:12px;
+  max-width:560px; width:100%;
+  padding:12px 14px; border-radius:calc(var(--radius) * 2);
+  font-size:14px; line-height:1.35; color:#fff;
+  box-shadow:0 10px 15px -3px rgba(0,0,0,.18), 0 4px 6px -4px rgba(0,0,0,.14);
+  transition:opacity .18s ease, transform .18s ease;
+}
+.banner.out{opacity:0; transform:translateY(8px)}
+.banner.ok{background:var(--success)}
+.banner.bad{background:var(--error)}
+:root:not([data-theme="light"]) .banner.ok,
+:root:not([data-theme="light"]) .banner.bad{color:#1C1917}
+:root[data-theme="dark"] .banner.ok,
+:root[data-theme="dark"] .banner.bad{color:#1C1917}
+.banner-text{flex:1 1 auto; min-width:0; overflow-wrap:anywhere}
+.banner-action{
+  flex:0 0 auto; font:inherit; font-weight:700; cursor:pointer;
+  background:none; border:0; color:inherit;
+  text-decoration:underline; text-underline-offset:3px; padding:2px 4px;
+}
+.banner-count{opacity:.8; font-variant-numeric:tabular-nums}
