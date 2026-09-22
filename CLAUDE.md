@@ -47,9 +47,32 @@ New link is live the moment the sheet row exists. No rebuild, no deploy.
 ## Upgrade path (only if link previews start to matter)
 Cloudflare DNS + Bulk Redirects — real 301s from a list, free, no build, no server. Not AWS.
 
-## DNS (when ready)
-Apex A records: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-Then add `CNAME` file to repo + tick **Enforce HTTPS** in Pages settings.
+## DNS — live 2026-09-22
+
+Registrar: **names.co.uk** (team.blue), `birly.uk`, auto-renews 22/9/2027.
+
+Edit records in the *advanced DNS* panel, direct link:
+
+    https://admin.names.co.uk/dns/mod.php?domain=birly.uk&domains=birly.uk&ns=phase8.net
+
+**The ordinary "DNS Settings" link is the wrong form** — its *Domain(s)* box wants
+domain names, not IPs, and rejects records with "is not a valid host name". The real
+record editor only appears after ticking *I accept full responsibility…* and clicking
+**Activate** under "Activate advanced DNS".
+
+Nameservers stay with names.co.uk (`ns0/ns1/ns2.phase8.net`) — repoint records, never
+change nameservers.
+
+| Host | Type | Result |
+|---|---|---|
+| *(blank)* | A | `185.199.108.153` |
+| *(blank)* | A | `185.199.109.153` |
+| *(blank)* | A | `185.199.110.153` |
+| *(blank)* | A | `185.199.111.153` |
+| `www` | CNAME | `pathfinderuxd-bit.github.io.` |
+
+`site/CNAME` contains `birly.uk`. Enforce HTTPS can only be ticked once GitHub has
+issued the certificate — it cannot be set before the domain resolves.
 
 ## Repo & hosting (live 2026-09-22)
 - GitHub: [`pathfinderuxd-bit/bir-ly`](https://github.com/pathfinderuxd-bit/bir-ly) — **public** (Pages on free plan needs it)
