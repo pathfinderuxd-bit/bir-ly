@@ -92,12 +92,27 @@ issued the certificate — it cannot be set before the domain resolves.
 Asset paths are relative and the resolver reads the **last** path segment, so
 the app works both at the apex and under the `/bir-ly/` github.io subpath.
 
-## Open items
-- [ ] Confirm registrar allows A records on `birly.uk`
-- [ ] Create Google Sheet (slug | url | created) + publish to web as CSV
-- [ ] Create Apps Script web app (code in `README.md`), paste both URLs into `config.js`
-- [ ] Enter the write key in the dashboard under "Write key"
-- [ ] Add `site/CNAME` containing `birly.uk` once DNS resolves, then tick Enforce HTTPS
+## Status — finished and live, 2026-09-22
+
+**https://birly.uk** — HTTPS enforced, Let's Encrypt cert (GitHub auto-renews).
+`http` and `www` both 301 to the apex.
+
+Proven end to end: create from the dashboard, resolve, delete, undo.
+
+### Three bugs worth remembering
+- **Apps Script deploys a pinned version.** Pasting new code changes nothing until
+  Manage deployments -> edit -> Version: **New version** -> Deploy. The `doGet`
+  health check names the domain, so it tells you which version is actually live.
+- **gviz blanks a wrong-typed cell.** Writing `toISOString()` into a datetime column
+  exported as empty while the sheet itself held the value — every timestamp vanished
+  from the app. Write a real `Date`.
+- **Sheet timezone changes the export format.** Setting it to Europe/London made the
+  CSV DD/MM/YYYY, which `Date.parse` reads as an impossible month and discards.
+  `parseCreated()` in index.html handles day-first, and falls back to month-first
+  for rows written before the change.
+
+### Remaining
+- Nothing blocking. The write key is per-browser: paste it once on each device.
 
 ---
 
