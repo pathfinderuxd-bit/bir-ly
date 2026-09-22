@@ -41,8 +41,16 @@ function create(body) {
 
     // An undo passes the original timestamp back so the restored row is
     // identical to the one that was removed, rather than jumping to the top.
+    //
+    // Write a real Date, never an ISO string: the column is typed as a
+    // datetime, and gviz exports a value of the wrong type as blank — which
+    // silently lost the timestamp on every restored row.
+    //
+    // A Date is stored without an offset, so it reads back in the SHEET's
+    // timezone. Set that to Europe/London (File -> Settings -> Timezone) or
+    // every link shows an hour out through British Summer Time.
     const created = body.created ? new Date(body.created) : new Date();
-    sheet.appendRow([slug, url, created.toISOString()]);
+    sheet.appendRow([slug, url, created]);
     return json({ ok: true, slug: slug });
   } finally {
     lock.releaseLock();
