@@ -34,12 +34,23 @@ body{
 }
 :focus-visible{outline:2px solid var(--focus); outline-offset:2px}
 
-.wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px}
+.wrap{max-width:720px;margin:0 auto;padding:40px 20px 80px;position:relative}
+
+.theme-btn{
+  position:absolute;top:40px;right:20px;
+  width:34px;height:34px;display:grid;place-items:center;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--radius);color:var(--muted);padding:0;
+}
+.theme-btn:hover{color:var(--brand);border-color:var(--brand-line);background:var(--brand-tint)}
+.theme-btn svg{width:17px;height:17px}
 
 header{display:flex;align-items:flex-end;gap:12px;margin-bottom:6px;flex-wrap:wrap}
 .logo{display:flex;flex-direction:column;align-items:flex-start;gap:2px;
       font-size:30px;font-weight:700;letter-spacing:-.02em;color:var(--heading);text-decoration:none}
-.logo img{width:44px;height:44px;display:block}
+/* The mark is drawn on white. On a dark ground that square would show,
+   so it is masked to a circle — the same treatment as the old app. */
+.logo img{width:44px;height:44px;display:block;border-radius:50%}
 .logo b{color:var(--brand)}
 .tag{
   margin-bottom:5px;

@@ -18,9 +18,12 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#A76A16">
 <link rel="stylesheet" href="style.css">
+<script src="theme.js"></script>
 </head>
 <body>
 <div class="wrap">
+
+  <button class="theme-btn" type="button" id="theme-btn"></button>
 
   <header>
     <a class="logo" href="./"><img src="icon-512.png" alt=""><span>bir<b>.ly</b></span></a>
@@ -290,6 +293,7 @@ function render(){
   }
   render();
 })();
+  Theme.mount(document.getElementById('theme-btn'));
 </script>
 </body>
 </html>
