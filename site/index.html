@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     bir.ly — dashboard
+     Version : v1.0
+     Date    : 2026-09-22
+     Author  : Rich Birley
+     Changes : Google Sheet store via Apps Script; falls back to a
+               local demo until config.js is filled in.
+     ============================================================ -->
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>bir.ly</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <a class="logo" href="/">bir<b>.ly</b></a>
+    <span class="tag" id="mode">Local demo</span>
+  </header>
+  <p class="sub">Paste a long URL, get a short one.</p>
+
+  <div class="card">
+    <form id="form" novalidate>
+      <div class="field">
+        <label for="url">Long URL</label>
+        <input id="url" type="url" placeholder="https://example.com/a/very/long/path?utm_source=…" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="field slug-field">
+        <label for="slug">Custom slug <span class="opt">(optional)</span></label>
+        <div class="slug-wrap">
+          <span id="host-label">bir.ly/</span>
+          <input id="slug" type="text" placeholder="auto" autocomplete="off" spellcheck="false" maxlength="24">
+        </div>
+      </div>
+      <button class="primary" type="submit" id="submit">Shorten</button>
+    </form>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+
+    <div style="margin-top:12px">
+      <button class="link-btn" type="button" id="toggle-settings">Write key</button>
+    </div>
+
+    <div class="settings" id="settings">
+      <div class="row">
+        <div class="field">
+          <label for="secret">Write key <span class="opt">— stored in this browser only, never committed</span></label>
+          <input id="secret" type="password" placeholder="the SECRET from your Apps Script" autocomplete="off">
+        </div>
+        <button class="ghost" type="button" id="save-secret">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <h2>Your links <span class="count" id="count"></span></h2>
+  <ul id="list"></ul>
+
+  <p class="note" id="note"></p>
+
+</div>
+
+<script src="/config.js"></script>
+<script>
+const ALPHABET = '23456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+const LOCAL_KEY = 'birly.links.v1';
+const SECRET_KEY = 'birly.secret';
+const RESERVED = new Set(['api','admin','app','login','new','static','assets','about','404','index','config','style','robots','sitemap','cname']);
+
+const CFG = window.BIRLY || {};
+const LIVE = Boolean(CFG.SHEET_CSV_URL && CFG.APPS_SCRIPT_URL);
+const DOMAIN = CFG.DOMAIN || 'bir.ly';
+
+const $ = id => document.getElementById(id);
+const form = $('form'), urlIn = $('url'), slugIn = $('slug'), msg = $('msg');
+const list = $('list'), count = $('count'), submit = $('submit');
+
+let links = [];
+
+$('host-label').textContent = DOMAIN + '/';
+$('mode').textContent = LIVE ? 'Live' : 'Local demo';
+$('note').innerHTML = LIVE
+  ? 'Links are stored in your Google Sheet and resolve immediately at <code>' + DOMAIN + '</code>. The sheet is published read-only, so treat the link list as public.'
+  : 'Not connected yet — links are saved to this browser only. Fill in <code>SHEET_CSV_URL</code> and <code>APPS_SCRIPT_URL</code> in <code>config.js</code> to go live.';
+
+$('toggle-settings').addEventListener('click', () => {
+  $('settings').classList.toggle('open');
+  if ($('settings').classList.contains('open')) $('secret').focus();
+});
+$('save-secret').addEventListener('click', () => {
+  const v = $('secret').value.trim();
+  if (v) localStorage.setItem(SECRET_KEY, v); else localStorage.removeItem(SECRET_KEY);
+  $('settings').classList.remove('open');
+  say(v ? 'Write key saved to this browser.' : 'Write key cleared.', 'ok');
+});
+try { $('secret').value = localStorage.getItem(SECRET_KEY) || ''; } catch {}
+
+function say(text, kind){
+  msg.textContent = text;
+  msg.className = 'msg' + (kind ? ' ' + kind : '');
+}
+
+function makeSlug(n = 7){
+  const bytes = crypto.getRandomValues(new Uint8Array(n));
+  return [...bytes].map(b => ALPHABET[b % ALPHABET.length]).join('');
+}
+
+function normalise(raw){
+  let v = raw.trim();
+  if (!v) return null;
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(v)) v = 'https://' + v;
+  let u;
+  try { u = new URL(v); } catch { return null; }
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+  if (!u.hostname.includes('.')) return null;
+  return u.href;
+}
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', quoted = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (quoted){
+      if (c === '"'){
+        if (text[i+1] === '"'){ field += '"'; i++; }
+        else quoted = false;
+      } else field += c;
+    } else if (c === '"'){ quoted = true; }
+    else if (c === ','){ row.push(field); field = ''; }
+    else if (c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+    else if (c !== '\r'){ field += c; }
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+async function loadLinks(){
+  if (!LIVE){
+    try { return JSON.parse(localStorage.getItem(LOCAL_KEY)) || []; } catch { return []; }
+  }
+  const res = await fetch(CFG.SHEET_CSV_URL, { cache: 'no-store' });
+  if (!res.ok) throw new Error('sheet ' + res.status);
+  return parseCSV(await res.text())
+    .filter(r => r[0] && r[1] && r[0].trim().toLowerCase() !== 'slug')
+    .map(r => ({ slug: r[0].trim(), url: r[1].trim(), created: Date.parse(r[2]) || null }))
+    .reverse();
+}
+
+function saveLocal(){
+  try { localStorage.setItem(LOCAL_KEY, JSON.stringify(links)); } catch {}
+}
+
+async function createLink(slug, url){
+  if (!LIVE){
+    links.unshift({ slug, url, created: Date.now() });
+    saveLocal();
+    return;
+  }
+  const secret = localStorage.getItem(SECRET_KEY);
+  if (!secret) throw new Error('No write key saved — add one under “Write key”.');
+
+  // text/plain avoids a CORS preflight, which Apps Script does not answer.
+  const res = await fetch(CFG.APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ secret, slug, url })
+  });
+  const data = await res.json().catch(() => ({ error: 'Unreadable response from Apps Script.' }));
+  if (data.error) throw new Error(data.error);
+  links.unshift({ slug, url, created: Date.now() });
+}
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const href = normalise(urlIn.value);
+  if (!href) return say('That doesn’t look like a valid web address.', 'err');
+
+  let slug = slugIn.value.trim();
+  if (slug){
+    if (!/^[a-zA-Z0-9_-]{3,24}$/.test(slug))
+      return say('Slugs are 3–24 characters: letters, numbers, hyphen or underscore.', 'err');
+    if (RESERVED.has(slug.toLowerCase()))
+      return say('“' + slug + '” is reserved for the app itself.', 'err');
+    if (links.some(l => l.slug.toLowerCase() === slug.toLowerCase()))
+      return say(DOMAIN + '/' + slug + ' is already taken.', 'err');
+  } else {
+    do { slug = makeSlug(); } while (links.some(l => l.slug === slug));
+  }
+
+  submit.disabled = true;
+  say('Saving…');
+  try {
+    await createLink(slug, href);
+    render();
+    form.reset();
+    urlIn.focus();
+    say('Created ' + DOMAIN + '/' + slug, 'ok');
+  } catch (err) {
+    say(err.message || 'Could not save that link.', 'err');
+  } finally {
+    submit.disabled = false;
+  }
+});
+
+function when(ts){
+  if (!ts) return '';
+  const s = (Date.now() - ts) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + 'm ago';
+  if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+  return new Date(ts).toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+}
+
+function render(){
+  count.textContent = links.length ? '(' + links.length + ')' : '';
+  list.innerHTML = '';
+
+  if (!links.length){
+    const p = document.createElement('li');
+    p.className = 'empty';
+    p.textContent = 'No links yet. Paste one above to get started.';
+    list.append(p);
+    return;
+  }
+
+  for (const link of links){
+    const li = document.createElement('li');
+
+    const main = document.createElement('div');
+    main.className = 'li-main';
+    const short = document.createElement('div');
+    short.className = 'short';
+    short.textContent = DOMAIN + '/' + link.slug;
+    const long = document.createElement('div');
+    long.className = 'long';
+    long.textContent = link.url;
+    long.title = link.url;
+    main.append(short, long);
+
+    const meta = document.createElement('span');
+    meta.className = 'meta';
+    meta.textContent = when(link.created);
+
+    const copy = document.createElement('button');
+    copy.className = 'ghost';
+    copy.type = 'button';
+    copy.textContent = 'Copy';
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText('https://' + DOMAIN + '/' + link.slug); }
+      catch { return say('Copy blocked by the browser — select the link manually.', 'err'); }
+      copy.textContent = 'Copied';
+      copy.classList.add('done');
+      setTimeout(() => { copy.textContent = 'Copy'; copy.classList.remove('done'); }, 1400);
+    });
+
+    li.append(main, meta, copy);
+
+    if (!LIVE){
+      const del = document.createElement('button');
+      del.className = 'icon-btn';
+      del.type = 'button';
+      del.setAttribute('aria-label', 'Delete ' + DOMAIN + '/' + link.slug);
+      del.textContent = 'Delete';
+      del.addEventListener('click', () => {
+        links = links.filter(l => l.slug !== link.slug);
+        saveLocal();
+        render();
+        say('Deleted ' + DOMAIN + '/' + link.slug);
+      });
+      li.append(del);
+    }
+
+    list.append(li);
+  }
+}
+
+(async () => {
+  try {
+    links = await loadLinks();
+  } catch {
+    say('Could not load your links from the sheet.', 'err');
+  }
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<!-- ============================================================
+     bir.ly — slug resolver
+     Version : v1.0
+     Date    : 2026-09-22
+     Author  : Rich Birley
+     Changes : GitHub Pages serves this for any unmatched path, so
+               one file resolves every slug. No build step.
+     ============================================================ -->
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Redirecting…</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="resolve" id="view">
+  <div class="spinner" id="spinner"></div>
+  <p id="status">Looking up <span class="slug" id="slug"></span></p>
+</div>
+
+<script src="/config.js"></script>
+<script>
+const view = document.getElementById('view');
+const slug = decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, '')).trim();
+document.getElementById('slug').textContent = slug || '—';
+
+function fail(heading, detail){
+  view.innerHTML = '';
+  const h = document.createElement('h1');
+  h.textContent = heading;
+  const p = document.createElement('p');
+  p.textContent = detail;
+  const a = document.createElement('a');
+  a.href = '/';
+  a.className = 'link-btn';
+  a.textContent = 'Go to bir.ly';
+  view.append(h, p, a);
+  document.title = heading;
+}
+
+// Minimal CSV parser — URLs contain commas, so splitting on ',' is not enough.
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', quoted = false;
+  for (let i = 0; i < text.length; i++){
+    const c = text[i];
+    if (quoted){
+      if (c === '"'){
+        if (text[i+1] === '"'){ field += '"'; i++; }
+        else quoted = false;
+      } else field += c;
+    } else if (c === '"'){ quoted = true; }
+    else if (c === ','){ row.push(field); field = ''; }
+    else if (c === '\n'){ row.push(field); rows.push(row); row = []; field = ''; }
+    else if (c !== '\r'){ field += c; }
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function safe(url){
+  try {
+    const u = new URL(url);
+    return (u.protocol === 'http:' || u.protocol === 'https:') ? u.href : null;
+  } catch { return null; }
+}
+
+(async () => {
+  if (!slug) return location.replace('/');
+
+  const csvUrl = window.BIRLY && window.BIRLY.SHEET_CSV_URL;
+  if (!csvUrl){
+    return fail('Not connected yet',
+      'The link store has not been configured. Add SHEET_CSV_URL to config.js.');
+  }
+
+  let rows;
+  try {
+    const res = await fetch(csvUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error(res.status);
+    rows = parseCSV(await res.text());
+  } catch {
+    return fail('Could not reach the link store',
+      'The lookup failed. Check your connection and try again.');
+  }
+
+  const match = rows.find(r => (r[0] || '').trim().toLowerCase() === slug.toLowerCase());
+  if (!match){
+    return fail('Link not found', 'bir.ly/' + slug + ' does not point anywhere.');
+  }
+
+  const target = safe((match[1] || '').trim());
+  if (!target){
+    return fail('Link is broken', 'That slug exists, but its destination is not a valid web address.');
+  }
+
+  document.getElementById('status').textContent = 'Taking you there…';
+  location.replace(target);
+})();
+</script>
+</body>
+</html>
