@@ -85,6 +85,14 @@ const CAN_WRITE = Boolean(CFG.APPS_SCRIPT_URL);
 const LIVE = CAN_READ && CAN_WRITE;
 const DOMAIN = CFG.DOMAIN || 'bir.ly';
 
+// Until DNS points at Pages the app lives at a github.io subpath, where a
+// bir.ly link would be dead. Show and copy wherever it is actually served
+// from; once the domain resolves, that is the domain.
+const BASE = new URL('.', location.href).href;
+const ON_DOMAIN = location.hostname === DOMAIN;
+const shortUrl = slug => ON_DOMAIN ? 'https://' + DOMAIN + '/' + slug : BASE + slug;
+const shortLabel = slug => shortUrl(slug).replace(/^https?:\/\//, '');
+
 const $ = id => document.getElementById(id);
 const form = $('form'), urlIn = $('url'), slugIn = $('slug'), msg = $('msg');
 const list = $('list'), count = $('count'), submit = $('submit');
@@ -218,7 +226,7 @@ form.addEventListener('submit', async e => {
     render();
     form.reset();
     urlIn.focus();
-    say('Created ' + DOMAIN + '/' + slug, 'ok');
+    say('Created ' + shortLabel(slug), 'ok');
   } catch (err) {
     say(err.message || 'Could not save that link.', 'err');
   } finally {
@@ -254,7 +262,7 @@ function render(){
     main.className = 'li-main';
     const short = document.createElement('div');
     short.className = 'short';
-    short.textContent = DOMAIN + '/' + link.slug;
+    short.textContent = shortLabel(link.slug);
     const long = document.createElement('div');
     long.className = 'long';
     long.textContent = link.url;
@@ -270,7 +278,7 @@ function render(){
     copy.type = 'button';
     copy.textContent = 'Copy';
     copy.addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText('https://' + DOMAIN + '/' + link.slug); }
+      try { await navigator.clipboard.writeText(shortUrl(link.slug)); }
       catch { return say('Copy blocked by the browser — select the link manually.', 'err'); }
       copy.textContent = 'Copied';
       copy.classList.add('done');
