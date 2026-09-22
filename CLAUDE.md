@@ -51,14 +51,27 @@ Cloudflare DNS + Bulk Redirects — real 301s from a list, free, no build, no se
 Apex A records: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
 Then add `CNAME` file to repo + tick **Enforce HTTPS** in Pages settings.
 
+## Repo & hosting (live 2026-09-22)
+- GitHub: [`pathfinderuxd-bit/bir-ly`](https://github.com/pathfinderuxd-bit/bir-ly) — **public** (Pages on free plan needs it)
+- Commit identity: `Pathfinder UXD <pathfinder.uxd@gmail.com>` (set locally in this repo)
+- Pages: Source = GitHub Actions, via `.github/workflows/pages.yml` (copied from `pub-round`)
+- Preview URL: https://pathfinderuxd-bit.github.io/bir-ly/
+- Nested repo — excluded from the monorepo in root `.gitignore` (`/Projects/bir-ly/`), same as `job-pipeline`
+
 ## Files
 | File | Version | Notes |
 |---|---|---|
-| `Code/index.html` | v0.1 | Dashboard SPA. Currently `localStorage` demo — not yet wired to Apps Script |
+| `site/index.html` | v1.0 | Dashboard. Apps Script POST when configured, `localStorage` demo until then |
+| `site/404.html` | v1.0 | Resolver — every short link lands here |
+| `site/config.js` | — | `SHEET_CSV_URL` + `APPS_SCRIPT_URL`, both currently blank |
+| `site/style.css` | — | Shared styling |
+
+Asset paths are relative and the resolver reads the **last** path segment, so
+the app works both at the apex and under the `/bir-ly/` github.io subpath.
 
 ## Open items
-- [ ] GitHub account to use (`richardbirley` or `pathfinderuxd-bit`) — repo will be public either way
 - [ ] Confirm registrar allows A records on `bir.ly`
-- [ ] Create Google Sheet + Apps Script web app
-- [ ] Swap SPA storage layer from `localStorage` to Apps Script POST
-- [ ] Write `404.html` resolver
+- [ ] Create Google Sheet (slug | url | created) + publish to web as CSV
+- [ ] Create Apps Script web app (code in `README.md`), paste both URLs into `config.js`
+- [ ] Enter the write key in the dashboard under "Write key"
+- [ ] Add `site/CNAME` containing `bir.ly` once DNS resolves, then tick Enforce HTTPS
