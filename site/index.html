@@ -46,7 +46,7 @@
         <input id="url" type="url" placeholder="https://example.com/a/very/long/path?utm_source=…" autocomplete="off" spellcheck="false">
       </div>
       <div class="field slug-field">
-        <label for="slug">Custom slug <span class="opt">(optional)</span></label>
+        <label for="slug">Custom string <span class="opt">(optional)</span></label>
         <div class="slug-wrap">
           <span id="host-label">birly.uk/</span>
           <input id="slug" type="text" placeholder="auto" autocomplete="off" spellcheck="false" maxlength="24">
@@ -302,7 +302,7 @@ form.addEventListener('submit', async e => {
   let slug = slugIn.value.trim();
   if (slug){
     if (!/^[a-zA-Z0-9_-]{3,24}$/.test(slug))
-      return say('Slugs are 3–24 characters: letters, numbers, hyphen or underscore.', 'err');
+      return say('Use 3–24 characters: letters, numbers, hyphen or underscore.', 'err');
     if (RESERVED.has(slug.toLowerCase()))
       return say('“' + slug + '” is reserved for the app itself.', 'err');
     if (links.some(l => l.slug.toLowerCase() === slug.toLowerCase()))
