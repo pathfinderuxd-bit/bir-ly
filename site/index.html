@@ -91,7 +91,9 @@ const DOMAIN = CFG.DOMAIN || 'bir.ly';
 const BASE = new URL('.', location.href).href;
 const ON_DOMAIN = location.hostname === DOMAIN;
 const shortUrl = slug => ON_DOMAIN ? 'https://' + DOMAIN + '/' + slug : BASE + slug;
-const shortLabel = slug => shortUrl(slug).replace(/^https?:\/\//, '');
+// The label stays short and branded; the note below says where links really
+// resolve while that is not yet true, and Copy always gives the live URL.
+const shortLabel = slug => DOMAIN + '/' + slug;
 
 const $ = id => document.getElementById(id);
 const form = $('form'), urlIn = $('url'), slugIn = $('slug'), msg = $('msg');
@@ -102,7 +104,8 @@ let links = [];
 $('host-label').textContent = DOMAIN + '/';
 $('mode').textContent = LIVE ? 'Live' : CAN_READ ? 'Read-only' : 'Local demo';
 $('note').innerHTML = LIVE
-  ? 'Links are stored in your Google Sheet and resolve immediately at <code>' + DOMAIN + '</code>. The sheet is readable by anyone with its link, so treat the link list as public.'
+  ? 'Links are stored in your Google Sheet and resolve immediately. The sheet is readable by anyone with its link, so treat the link list as public.'
+    + (ON_DOMAIN ? '' : ' <strong>' + DOMAIN + ' does not point here yet</strong> — Copy gives the working <code>github.io</code> link.')
   : CAN_READ
   ? 'Reading your sheet, but there is nowhere to write yet — add rows in the sheet itself and they resolve straight away. Set <code>APPS_SCRIPT_URL</code> in <code>config.js</code> to add them from here.'
   : 'Not connected yet — links are saved to this browser only. Fill in <code>SHEET_CSV_URL</code> and <code>APPS_SCRIPT_URL</code> in <code>config.js</code> to go live.';
@@ -263,6 +266,7 @@ function render(){
     const short = document.createElement('div');
     short.className = 'short';
     short.textContent = shortLabel(link.slug);
+    short.title = shortUrl(link.slug);
     const long = document.createElement('div');
     long.className = 'long';
     long.textContent = link.url;
