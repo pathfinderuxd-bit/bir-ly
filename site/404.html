@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- ============================================================
-     bir.ly — slug resolver
+     birly.uk — slug resolver
      Version : v1.0
      Date    : 2026-09-22
      Author  : Rich Birley
@@ -44,7 +44,7 @@ function fail(heading, detail){
   const a = document.createElement('a');
   a.href = './';
   a.className = 'link-btn';
-  a.textContent = 'Go to bir.ly';
+  a.textContent = 'Go to birly.uk';
   view.append(h, p, a);
   document.title = heading;
 }
@@ -97,7 +97,7 @@ function safe(url){
 
   const match = rows.find(r => (r[0] || '').trim().toLowerCase() === slug.toLowerCase());
   if (!match){
-    return fail('Link not found', 'bir.ly/' + slug + ' does not point anywhere.');
+    return fail('Link not found', 'birly.uk/' + slug + ' does not point anywhere.');
   }
 
   const target = safe((match[1] || '').trim());

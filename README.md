@@ -1,6 +1,6 @@
-# bir.ly
+# birly.uk
 
-A personal link shortener. Paste a long URL, get `bir.ly/akw56js`.
+A personal link shortener. Paste a long URL, get `birly.uk/akw56js`.
 
 No server, no database, no sign-in. GitHub Pages serves three static files; a
 Google Sheet holds the links.
@@ -8,7 +8,7 @@ Google Sheet holds the links.
 ## How it works
 
 ```
-bir.ly/akw56js
+birly.uk/akw56js
   → GitHub Pages finds no such file
   → serves 404.html
   → 404.html reads the slug from the path, fetches the Sheet CSV, redirects
@@ -77,7 +77,7 @@ kept in your browser's localStorage and never committed to this public repo.
 
 ### 4. The domain
 
-At your registrar, point `bir.ly` at GitHub with four A records:
+At your registrar, point `birly.uk` at GitHub with four A records:
 
 ```
 185.199.108.153
@@ -86,7 +86,7 @@ At your registrar, point `bir.ly` at GitHub with four A records:
 185.199.111.153
 ```
 
-Then add a `site/CNAME` file containing `bir.ly`, and tick **Enforce HTTPS**
+Then add a `site/CNAME` file containing `birly.uk`, and tick **Enforce HTTPS**
 in the Pages settings once the certificate has been issued.
 
 ## Known trade-offs

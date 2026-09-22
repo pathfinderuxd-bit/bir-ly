@@ -1,9 +1,9 @@
-# bir.ly — Link Shortener
+# birly.uk — Link Shortener
 
 Created: 2026-09-22
 
 ## What it is
-A personal link shortener. Paste a long URL, get `bir.ly/akw56js`.
+A personal link shortener. Paste a long URL, get `birly.uk/akw56js`.
 
 ## Decisions made (2026-09-22)
 
@@ -20,11 +20,11 @@ A personal link shortener. Paste a long URL, get `bir.ly/akw56js`.
 ## Architecture
 
 ```
-bir.ly (apex, A records → GitHub IPs)
+birly.uk (apex, A records → GitHub IPs)
   │
   ├── index.html   dashboard SPA — paste URL, get slug
   ├── 404.html     resolver — reads slug from path, looks up Google Sheet CSV, redirects
-  └── CNAME        contains: bir.ly
+  └── CNAME        contains: birly.uk
           │
           └── Google Sheet (published CSV)   slug │ url │ created
                     ▲
@@ -70,11 +70,11 @@ Asset paths are relative and the resolver reads the **last** path segment, so
 the app works both at the apex and under the `/bir-ly/` github.io subpath.
 
 ## Open items
-- [ ] Confirm registrar allows A records on `bir.ly`
+- [ ] Confirm registrar allows A records on `birly.uk`
 - [ ] Create Google Sheet (slug | url | created) + publish to web as CSV
 - [ ] Create Apps Script web app (code in `README.md`), paste both URLs into `config.js`
 - [ ] Enter the write key in the dashboard under "Write key"
-- [ ] Add `site/CNAME` containing `bir.ly` once DNS resolves, then tick Enforce HTTPS
+- [ ] Add `site/CNAME` containing `birly.uk` once DNS resolves, then tick Enforce HTTPS
 
 ---
 

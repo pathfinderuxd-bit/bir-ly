@@ -14,5 +14,5 @@
 window.BIRLY = {
   SHEET_CSV_URL: 'https://docs.google.com/spreadsheets/d/1dAV2c3yrWiyD4gOAXUszY28UnMwTDZVGHVU7ji5lSDo/gviz/tq?tqx=out:csv',
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxQa7oZJMwHj1wu155aoGPAEb7jdEeRHpHXQw18ZyUbIz5-DM9m98OhKqZtLS-r5BKS3Q/exec',
-  DOMAIN: 'bir.ly'
+  DOMAIN: 'birly.uk'
 };

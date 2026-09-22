@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- ============================================================
-     bir.ly — dashboard
+     birly.uk — dashboard
      Version : v1.0
      Date    : 2026-09-22
      Author  : Rich Birley
@@ -12,7 +12,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>bir.ly</title>
+<title>birly.uk</title>
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="icon" href="favicon-16.png" sizes="16x16">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -26,7 +26,7 @@
   <button class="theme-btn" type="button" id="theme-btn"></button>
 
   <header>
-    <a class="logo" href="./"><img src="icon-512.png" alt=""><span>bir<b>.ly</b></span></a>
+    <a class="logo" href="./"><img src="icon-512.png" alt=""><span>birly<b>.uk</b></span></a>
     <span class="tag" id="mode">Local demo</span>
   </header>
   <p class="sub">Paste a long URL, get a short one.</p>
@@ -40,7 +40,7 @@
       <div class="field slug-field">
         <label for="slug">Custom slug <span class="opt">(optional)</span></label>
         <div class="slug-wrap">
-          <span id="host-label">bir.ly/</span>
+          <span id="host-label">birly.uk/</span>
           <input id="slug" type="text" placeholder="auto" autocomplete="off" spellcheck="false" maxlength="24">
         </div>
       </div>
@@ -83,10 +83,10 @@ const CFG = window.BIRLY || {};
 const CAN_READ = Boolean(CFG.SHEET_CSV_URL);
 const CAN_WRITE = Boolean(CFG.APPS_SCRIPT_URL);
 const LIVE = CAN_READ && CAN_WRITE;
-const DOMAIN = CFG.DOMAIN || 'bir.ly';
+const DOMAIN = CFG.DOMAIN || 'birly.uk';
 
 // Until DNS points at Pages the app lives at a github.io subpath, where a
-// bir.ly link would be dead. Show and copy wherever it is actually served
+// birly.uk link would be dead. Show and copy wherever it is actually served
 // from; once the domain resolves, that is the domain.
 const BASE = new URL('.', location.href).href;
 const ON_DOMAIN = location.hostname === DOMAIN;
