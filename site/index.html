@@ -78,7 +78,11 @@ const SECRET_KEY = 'birly.secret';
 const RESERVED = new Set(['api','admin','app','login','new','static','assets','about','404','index','config','style','robots','sitemap','cname']);
 
 const CFG = window.BIRLY || {};
-const LIVE = Boolean(CFG.SHEET_CSV_URL && CFG.APPS_SCRIPT_URL);
+// Reading and writing are configured separately: the resolver needs only the
+// sheet, so links can resolve before the write endpoint exists.
+const CAN_READ = Boolean(CFG.SHEET_CSV_URL);
+const CAN_WRITE = Boolean(CFG.APPS_SCRIPT_URL);
+const LIVE = CAN_READ && CAN_WRITE;
 const DOMAIN = CFG.DOMAIN || 'bir.ly';
 
 const $ = id => document.getElementById(id);
@@ -88,10 +92,19 @@ const list = $('list'), count = $('count'), submit = $('submit');
 let links = [];
 
 $('host-label').textContent = DOMAIN + '/';
-$('mode').textContent = LIVE ? 'Live' : 'Local demo';
+$('mode').textContent = LIVE ? 'Live' : CAN_READ ? 'Read-only' : 'Local demo';
 $('note').innerHTML = LIVE
-  ? 'Links are stored in your Google Sheet and resolve immediately at <code>' + DOMAIN + '</code>. The sheet is published read-only, so treat the link list as public.'
+  ? 'Links are stored in your Google Sheet and resolve immediately at <code>' + DOMAIN + '</code>. The sheet is readable by anyone with its link, so treat the link list as public.'
+  : CAN_READ
+  ? 'Reading your sheet, but there is nowhere to write yet — add rows in the sheet itself and they resolve straight away. Set <code>APPS_SCRIPT_URL</code> in <code>config.js</code> to add them from here.'
   : 'Not connected yet — links are saved to this browser only. Fill in <code>SHEET_CSV_URL</code> and <code>APPS_SCRIPT_URL</code> in <code>config.js</code> to go live.';
+
+if (CAN_READ && !CAN_WRITE){
+  submit.disabled = true;
+  submit.title = 'No write endpoint configured yet';
+  urlIn.disabled = slugIn.disabled = true;
+  $('toggle-settings').hidden = true;
+}
 
 $('toggle-settings').addEventListener('click', () => {
   $('settings').classList.toggle('open');
@@ -146,7 +159,7 @@ function parseCSV(text){
 }
 
 async function loadLinks(){
-  if (!LIVE){
+  if (!CAN_READ){
     try { return JSON.parse(localStorage.getItem(LOCAL_KEY)) || []; } catch { return []; }
   }
   const res = await fetch(CFG.SHEET_CSV_URL, { cache: 'no-store' });
@@ -162,7 +175,7 @@ function saveLocal(){
 }
 
 async function createLink(slug, url){
-  if (!LIVE){
+  if (!CAN_WRITE){
     links.unshift({ slug, url, created: Date.now() });
     saveLocal();
     return;
@@ -266,7 +279,7 @@ function render(){
 
     li.append(main, meta, copy);
 
-    if (!LIVE){
+    if (!CAN_READ){
       const del = document.createElement('button');
       del.className = 'icon-btn';
       del.type = 'button';
