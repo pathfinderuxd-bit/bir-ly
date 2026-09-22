@@ -13,7 +13,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Redirecting…</title>
-<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="resolve" id="view">
@@ -21,10 +21,13 @@
   <p id="status">Looking up <span class="slug" id="slug"></span></p>
 </div>
 
-<script src="/config.js"></script>
+<script src="config.js"></script>
 <script>
 const view = document.getElementById('view');
-const slug = decodeURIComponent(location.pathname.replace(/^\/+|\/+$/g, '')).trim();
+// Last path segment, so this works at the apex and under a project subpath.
+const slug = decodeURIComponent(
+  location.pathname.replace(/^\/+|\/+$/g, '').split('/').pop() || ''
+).trim();
 document.getElementById('slug').textContent = slug || '—';
 
 function fail(heading, detail){
@@ -34,7 +37,7 @@ function fail(heading, detail){
   const p = document.createElement('p');
   p.textContent = detail;
   const a = document.createElement('a');
-  a.href = '/';
+  a.href = './';
   a.className = 'link-btn';
   a.textContent = 'Go to bir.ly';
   view.append(h, p, a);
